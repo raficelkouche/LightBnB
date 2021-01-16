@@ -168,7 +168,6 @@ const getAllProperties = function(options, limit = 10) {
 
   return pool.query(queryString, queryParams)
     .then(res => {
-      console.log(res.rows)
       return res.rows
     });
 };
@@ -181,9 +180,25 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+ 
+  let schema = [...Object.keys(property)];
+  let values = [...Object.values(property)];
+ 
+  let counter = [];
+
+  for (let i = 0; i < values.length; i++) {
+    counter.push(`$${i+1}`);
+  }
+  counter = counter.join(",")
+  schema = schema.join(",");
+
+  let queryString = `
+    INSERT into properties (${schema}) 
+    VALUES (${counter}) 
+    RETURNING *`;
+  console.log(queryString);
+  
+  return pool.query(queryString,values)
+    .then(res => res.rows)
 }
 exports.addProperty = addProperty;
